@@ -1,72 +1,111 @@
-import React, { useState } from "react";
-import cards from "./cards.json";
-import PictureCard from "./components/PictureCard";
-import './App.css';
-import Wrapper from "./components/Wrapper";
+import React, { Component } from "react";
+import Cards from "./Cards";
+import Navbar from "./components/Navbar";
+import Banner from "./components/Banner";
+import ImageBlockListing from "./components/ImageBlockListing";
+import Footer from "./components/Footer";
+
 
 class App extends Component {
-  // SETTING STATE
-  state = {
-    cards,
-    clickedArray: [],
-    topScore: 0,
+	state = {
+    cards: Cards,
+    clickedImages: [],
     score: 0,
-    message: "",
-    shuffle: "false"
+    topScore: 0,
+    feedback: "Click an image to begin!",
+    gameStatus: 0 
   };
-  clickPicture = id => {
-    // PICTURES ARRAGED RAMDOMLY
-    const shuffledArray = this.shuffledArray(cards);
-    this.setState({cards: shuffledArray});
-// GAME OVER IF THE USER CLICK ON AN IMAGE ALREADY CHOSEN
-    if (this.state.clickedArray.includes(id)) {
-      this.setState({ score: 0, clickedArray: [], message: "Game Over. Try again!", shuffle:"true"});
-    } else {
-      this.setState({ 
-        clickedArray: this.state.clickedArray.concat[id],
-        score: this.state.score + 1,
-        message: "Correct!",
-        shuffle: "false"
+
+  componentDidMount() {
+    this.setState({
+      cards: this.shuffle(this.state.cards)
+    }, () => {
+      console.log("Shuffled the images on game start");
+    });
+  }
+
+  handleClick = event => {
+    
+    const clickedImageFileName = event.target.alt;
+    
+    const wasImageClickedBefore = this.imageClickedBefore(clickedImageFileName);
+    if (wasImageClickedBefore) {
+      this.setState({
+        cards: this.shuffle(this.state.cards),
+        
+        clickedImages: [],
+        score: 0,
+        feedback: "Game Over! You Guessed The Same Image Twice!",
+        gameStatus: 2
+      }, () => {
+       
       });
-    }
-// SET TOP SCORE
-    if (this.state.score > this.state.topScore) {
-      this.setState({ topScore: this.state.score});
-    }
-
-    }
-    shuffleArray = (picturesArray) => {
-      for (let i = picturesArray.lenght - 1; i > 0; i--) {
-        let j = Math.floor(Math.random() * (i + 1));
-        [picturesArray[i], picturesArray [j]] = [picturesArray[j], picturesArray [i]];
+    } else {
+      let newScore = this.state.score + 1;
+      if (newScore === this.state.cards.length) {
+        this.setState({
+        cards: this.shuffle(this.state.cards),
+        
+          clickedImages: [],
+          score: 0,
+          topScore: newScore,
+          feedback: "Congrats! You Have Guessed All Of The Images Correctly!",
+          gameStatus: 1
+          });
+      } else {
+        const clickedImagesCopy = this.state.clickedImages.slice();
+        clickedImagesCopy.push(clickedImageFileName);
+        const newTopScore = (newScore > this.state.topScore) ? newScore : this.state.topScore;
+        this.setState({
+        cards: this.shuffle(this.state.cards),
+        
+          clickedImages: clickedImagesCopy,
+          score: newScore,
+          topScore: newTopScore,
+          feedback: "Yes! You Guessed The Image Correctly!",
+          gameStatus: 0
+          }, () => {
+          
+        });
       }
-      return picturesArray;
     }
+  };
 
-render() {
-  return(
-<div className="App">
-  <header className="App-header">
-    <h1 className="App-title">Clicky Game</h1>
-  </header>
-<h3 className="App-Instructions">
-  <strong>Click on  the images only once. If you click an image twice, you'll loose and the game restarts.</strong>
-  <p className="score"><strong>Score: {this.state.score} | TopScore: {this.state.topScore}</strong></p>
-  <p className="message"><strong>{this.message}</strong></p>
-</h3>
-<Wrapper
-pictures = {this.state.cards.map(picture => (
-  <PictureCard
-  id={picture.id}
-  key={picture.id}
-  name={picture.name}
-  image={picture.image}
-  />
-))}
-/>
-</div>
-  );
- }
+  imageClickedBefore = (clickedImageFileName) => {
+  	for (let index=0; index<this.state.clickedImages.length; index++) {
+  		if (this.state.clickedImages[index] === clickedImageFileName) {
+        return true;
+      }
+    }
+    return false;
+  };
+
+  
+  shuffle = (array) => {
+    var currentIndex = array.length, temporaryValue, randomIndex;
+    
+    while (0 !== currentIndex) {
+      
+      randomIndex = Math.floor(Math.random() * currentIndex);
+      currentIndex -= 1;
+      
+      temporaryValue = array[currentIndex];
+      array[currentIndex] = array[randomIndex];
+      array[randomIndex] = temporaryValue;
+    }
+    return array;
+  };
+
+  render() {
+   return (
+    <div>
+      <Navbar score={this.state.score} topScore={this.state.topScore} feedback={this.state.feedback} gameStatus={this.state.gameStatus} />
+      <Banner />
+      <ImageBlockListing cards={this.state.cards} clickHandler={this.handleClick} gameStatus={this.state.gameStatus} />
+      <Footer />
+    </div>
+    );
+  }
 }
 
 export default App;

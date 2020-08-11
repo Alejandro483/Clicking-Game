@@ -1,0 +1,14 @@
+.jumbotron {
+	
+	background: url("https://wallpaper-house.com/data/out/6/wallpaper2you_93109.jpg") center center no-repeat fixed #000000;
+
+	font-family: Serif, Monospace;
+	height: 400px;
+	width: auto;
+	opacity: 0.5;
+}
+
+h1, h4 {
+	color: #ffffff;
+	font-weight: bold;
+}
